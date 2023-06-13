@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -e
+
+iperf_client_host=$1
+
+
+lsof -i TCP:5001 | grep LISTEN | awk '{print $2}' | xargs kill -9 || true
+
+iperf -s -f g &
+iperf_server_pid=$!
+iperf_server_ip=$(hostname -I | cut -d' ' -f1)
+sleep 1
+
+echo "Server IP: $iperf_server_ip"
+echo "Server PID: $iperf_server_pid"
+echo "------------------------------------------------------------"
+
+echo "Connecting to client..."
+ssh "${iperf_client_host}" iperf -c "${iperf_server_ip}" -n 200M -f g
+
+sleep 1
+sleep 1
